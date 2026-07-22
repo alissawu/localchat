@@ -1,0 +1,42 @@
+{
+  "name": "localchat",
+  "version": "1.0.0",
+  "description": "Local encrypted chat client",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alissawu/localchat.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.4.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.local.chat",
+    "productName": "Chat",
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
