@@ -167,6 +167,7 @@ const elements = {
   messageInput: document.getElementById('messageInput'),
   sendBtn: document.getElementById('sendBtn'),
   providerSelect: document.getElementById('providerSelect'),
+  reasoningEffort: document.getElementById('reasoningEffort'),
   contextList: document.getElementById('contextList'),
   tokenCount: document.getElementById('tokenCount'),
   messageCount: document.getElementById('messageCount'),
@@ -356,6 +357,7 @@ async function getAssistantResponse(provider, toolResults = null) {
   const config = providerConfigs[provider.type] || providerConfigs.custom;
   const endpoint = provider.endpoint || config.endpoint;
   const model = provider.model || config.defaultModel;
+  const reasoningEffort = elements.reasoningEffort.value;
 
   let messagesToSend = state.messages
     .filter(m => !m.archived)
@@ -386,6 +388,16 @@ async function getAssistantResponse(provider, toolResults = null) {
       // Add tools if supported and strict mode enabled
       if (settings.strictMode && config.supportsTools) {
         requestBody.tools = tools;
+      }
+    }
+    
+    // Add reasoning effort for supported providers
+    if (reasoningEffort !== 'default') {
+      const supportsReasoning = ['kimi', 'deepseek', 'openrouter'].includes(provider.type);
+      const modelSupportsReasoning = model.includes('kimi') || model.includes('deepseek');
+      
+      if (supportsReasoning || modelSupportsReasoning) {
+        requestBody.reasoning_effort = reasoningEffort;
       }
     }
 

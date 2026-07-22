@@ -158,7 +158,16 @@ body {
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
-  min-width: 200px;
+}
+
+.chat-header select#providerSelect {
+  min-width: 180px;
+}
+
+.chat-header select#reasoningEffort {
+  min-width: 90px;
+  margin-left: 8px;
+  font-size: 13px;
 }
 
 .chat-header-actions {
