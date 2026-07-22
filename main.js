@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const https = require('https');
+const http = require('http');
 
 // Storage paths
 const userDataPath = app.getPath('userData');
@@ -60,6 +62,138 @@ function decrypt(encryptedData) {
   } catch (e) {
     console.error('Decryption failed:', e);
     return null;
+  }
+}
+
+// HTTP fetch helper
+function httpFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url);
+    const client = parsedUrl.protocol === 'https:' ? https : http;
+    
+    const req = client.request(url, {
+      method: options.method || 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        ...options.headers,
+      },
+      timeout: 30000,
+    }, (res) => {
+      // Handle redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        httpFetch(res.headers.location, options).then(resolve).catch(reject);
+        return;
+      }
+      
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode, data, headers: res.headers }));
+    });
+    
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request timeout'));
+    });
+    
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
+
+// Web search using DuckDuckGo HTML
+async function webSearch(query) {
+  try {
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const response = await httpFetch(searchUrl);
+    
+    if (response.status !== 200) {
+      return `Search failed with status ${response.status}`;
+    }
+    
+    // Parse results from HTML
+    const html = response.data;
+    const results = [];
+    
+    // Extract result snippets using regex (simple parsing)
+    const resultRegex = /<a class="result__a" href="([^"]+)"[^>]*>([^<]+)<\/a>[\s\S]*?<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+    let match;
+    
+    while ((match = resultRegex.exec(html)) !== null && results.length < 8) {
+      const url = match[1];
+      const title = match[2].trim();
+      const snippet = match[3].replace(/<[^>]+>/g, '').trim();
+      
+      if (url && title) {
+        results.push({ title, url, snippet });
+      }
+    }
+    
+    // Fallback: simpler regex if the above doesn't match
+    if (results.length === 0) {
+      const simpleRegex = /<a class="result__url"[^>]*>([^<]+)<\/a>/g;
+      const snippetRegex = /<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+      
+      let urlMatch, snippetMatch;
+      while ((urlMatch = simpleRegex.exec(html)) !== null && results.length < 8) {
+        snippetMatch = snippetRegex.exec(html);
+        results.push({
+          url: urlMatch[1].trim(),
+          snippet: snippetMatch ? snippetMatch[1].replace(/<[^>]+>/g, '').trim() : '',
+        });
+      }
+    }
+    
+    if (results.length === 0) {
+      return 'No results found';
+    }
+    
+    return results.map((r, i) => 
+      `[${i + 1}] ${r.title || r.url}\n${r.url}\n${r.snippet}`
+    ).join('\n\n');
+    
+  } catch (error) {
+    return `Search error: ${error.message}`;
+  }
+}
+
+// Web fetch - get page content
+async function webFetch(url) {
+  try {
+    const response = await httpFetch(url);
+    
+    if (response.status !== 200) {
+      return `Fetch failed with status ${response.status}`;
+    }
+    
+    let content = response.data;
+    
+    // Strip HTML tags and get text content
+    content = content
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Truncate if too long
+    if (content.length > 15000) {
+      content = content.substring(0, 15000) + '\n\n[Content truncated...]';
+    }
+    
+    return content;
+    
+  } catch (error) {
+    return `Fetch error: ${error.message}`;
   }
 }
 
@@ -128,6 +262,15 @@ ipcMain.handle('settings:save', async (event, settings) => {
     console.error('Settings save failed:', e);
     return false;
   }
+});
+
+// Tool handlers
+ipcMain.handle('tool:web-search', async (event, query) => {
+  return await webSearch(query);
+});
+
+ipcMain.handle('tool:web-fetch', async (event, url) => {
+  return await webFetch(url);
 });
 
 app.whenReady().then(createWindow);

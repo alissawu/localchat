@@ -215,6 +215,36 @@ body {
   max-width: 90%;
 }
 
+.message.tool-call {
+  background: #1e3a5f;
+  font-family: monospace;
+  font-size: 12px;
+  align-self: flex-start;
+}
+
+.message.tool-result {
+  background: #1a3d1a;
+  font-family: monospace;
+  font-size: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  align-self: flex-start;
+}
+
+.tool-status {
+  padding: 8px 20px;
+  background: var(--bg-tertiary);
+  color: var(--accent);
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .message .actions {
   position: absolute;
   top: -8px;
@@ -363,6 +393,10 @@ body {
   max-width: 400px;
 }
 
+.modal-large {
+  max-width: 600px;
+}
+
 .modal-header {
   padding: 20px;
   border-bottom: 1px solid var(--border);
@@ -461,6 +495,34 @@ body {
 .summary-info {
   margin-bottom: 12px;
   color: var(--text-secondary);
+}
+
+.system-prompt-section {
+  margin-top: 12px;
+}
+
+.system-prompt-section label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.system-prompt-section textarea {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.system-prompt-section textarea:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 #summaryText {

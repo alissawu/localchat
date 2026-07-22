@@ -9,4 +9,8 @@ contextBridge.exposeInMainWorld('api', {
   // Settings
   loadSettings: () => ipcRenderer.invoke('settings:load'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
+  
+  // Tools
+  webSearch: (query) => ipcRenderer.invoke('tool:web-search', query),
+  webFetch: (url) => ipcRenderer.invoke('tool:web-fetch', url),
 });

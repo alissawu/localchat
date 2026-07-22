@@ -46,6 +46,10 @@
         </div>
       </div>
       
+      <div id="toolStatus" class="tool-status" style="display: none;">
+        Searching...
+      </div>
+      
       <div class="messages" id="messages">
         <div class="empty-state" id="emptyState">
           <p>Start a conversation</p>
@@ -66,7 +70,7 @@
 
   <!-- Settings Modal -->
   <div class="modal" id="settingsModal">
-    <div class="modal-content">
+    <div class="modal-content modal-large">
       <div class="modal-header">
         <h2>Settings</h2>
         <button class="btn-icon" id="closeSettings">×</button>
@@ -81,6 +85,7 @@
             <option value="openai">OpenAI</option>
             <option value="anthropic">Anthropic</option>
             <option value="deepseek">DeepSeek</option>
+            <option value="kimi">Kimi (Moonshot AI)</option>
             <option value="openrouter">OpenRouter</option>
             <option value="ollama">Ollama (Local)</option>
             <option value="custom">Custom OpenAI-compatible</option>
@@ -88,11 +93,22 @@
           <input type="text" id="providerName" placeholder="Display name">
           <input type="password" id="providerKey" placeholder="API Key">
           <input type="text" id="providerEndpoint" placeholder="Endpoint (optional)">
-          <input type="text" id="providerModel" placeholder="Model name">
+          <input type="text" id="providerModel" placeholder="Model name (e.g., kimi-k3, gpt-4o)">
           <div class="form-actions">
             <button class="btn btn-secondary" id="cancelProvider">Cancel</button>
             <button class="btn btn-primary" id="saveProvider">Save</button>
           </div>
+        </div>
+
+        <h3>Grounding & Tools</h3>
+        <label class="checkbox-label">
+          <input type="checkbox" id="strictMode" checked>
+          Strict mode (enable web search tools + grounding prompt)
+        </label>
+        
+        <div class="system-prompt-section">
+          <label for="systemPromptText">System Prompt</label>
+          <textarea id="systemPromptText" rows="4" placeholder="System prompt for grounding...">You are a legal research assistant. When stating facts, case law, or precedents, cite your sources. If you're uncertain about something, say so clearly. Do not make up case names, statutes, or quotes. When you need current information, use the web_search tool. When you need to read a specific page, use the web_fetch tool.</textarea>
         </div>
 
         <h3>Archive Settings</h3>
