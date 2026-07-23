@@ -4,11 +4,15 @@
   "description": "Local encrypted chat client",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder",
-    "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "dev:vite": "vite",
+    "dev:electron": "wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dev": "concurrently -k -n VITE,ELEC -c cyan,magenta \"npm:dev:vite\" \"npm:dev:electron\"",
+    "build:renderer": "vite build",
+    "start": "npm run build:renderer && electron .",
+    "build": "npm run build:renderer && electron-builder",
+    "build:mac": "npm run build:renderer && electron-builder --mac",
+    "build:win": "npm run build:renderer && electron-builder --win",
+    "build:linux": "npm run build:renderer && electron-builder --linux"
   },
   "repository": {
     "type": "git",
@@ -17,8 +21,22 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-virtual": "^3.14.8",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.2.4",
+    "cross-env": "^7.0.3",
     "electron": "^33.4.1",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.5",
+    "wait-on": "^8.0.5"
   },
   "build": {
     "appId": "com.local.chat",
@@ -26,7 +44,7 @@
     "files": [
       "main.js",
       "preload.js",
-      "src/**/*"
+      "dist/**/*"
     ],
     "mac": {
       "target": "dmg",

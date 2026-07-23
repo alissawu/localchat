@@ -5,11 +5,11 @@ contextBridge.exposeInMainWorld('api', {
   loadData: () => ipcRenderer.invoke('storage:load'),
   saveData: (data) => ipcRenderer.invoke('storage:save', data),
   wipeAll: () => ipcRenderer.invoke('storage:wipe'),
-  
+
   // Settings
   loadSettings: () => ipcRenderer.invoke('settings:load'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
-  
+
   // Tools
   webSearch: (query) => ipcRenderer.invoke('tool:web-search', query),
   webFetch: (url) => ipcRenderer.invoke('tool:web-fetch', url),

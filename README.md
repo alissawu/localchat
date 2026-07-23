@@ -1,84 +1,46 @@
 # localchat
 
-Local encrypted chat client with web search tools. All data stored locally with encryption.
+A local, encrypted chat client for careful conversations with LLMs. Built as an Electron + React + TypeScript app. Everything is stored on your machine, encrypted with your OS keychain (or AES-256-GCM as a fallback), and nothing leaves the machine except the API calls you consent to.
+
+## Why
+
+Cloud chat products keep your logs. Those logs are discoverable, hackable, and increasingly subpoenaed. This is a small, auditable client you can point at whichever model provider you trust the least (or self-host with Ollama).
 
 ## Features
 
-- Multiple API providers (OpenAI, Anthropic, DeepSeek, Kimi K3, OpenRouter, Ollama, custom)
-- Encrypted local storage (uses OS keychain when available)
-- **Strict mode** with grounding system prompt + web tools
-- Web search tool (DuckDuckGo, no API key needed)
-- Web fetch tool (read any URL)
-- Context management with token counting
-- Selective message deletion
-- Summarization (compress old messages to save context)
-- Archive originals when summarizing
-- Panic wipe button (secure deletion)
+- **Streaming responses** across OpenAI, Anthropic, DeepSeek, Kimi (Moonshot), OpenRouter, Ollama, and any OpenAI-compatible endpoint
+- **Tool calling** with two built-in tools (`web_search` via DuckDuckGo HTML, `web_fetch`) that run in the Node main process, not the renderer
+- **Strict / grounding mode** that injects a system prompt telling the model to cite sources and not fabricate, and exposes the search tools
+- **Virtualized message list** (`@tanstack/react-virtual`) that stays smooth at thousands of messages
+- **Context manager** with per-message token counts, a running context bar, and user-driven summarization (review the summary before applying)
+- **Panic wipe** that overwrites storage with random bytes before deleting
+- **Reasoning effort** dropdown for Kimi/DeepSeek/o-series (`low` / `high` / `max`)
 
-## Setup
+## Run it
 
 ```bash
 npm install
-npm start
+npm run dev      # Vite dev server + Electron with HMR
+# or
+npm start        # build the renderer once and launch
 ```
 
-## Build
+## Structure
 
-```bash
-npm run build:mac   # macOS
-npm run build:win   # Windows
-npm run build:linux # Linux
+```
+main.js           Electron main process: encrypted storage, IPC, web tools
+preload.js        Bridges window.api to the renderer
+src/              React renderer (Vite + TS + Tailwind 4)
+  App.tsx
+  components/     Chat, Sidebar, Message, Modals, SubagentCard
+  hooks/          useAppState, useChat
+  lib/            providers, stream (SSE + NDJSON), summarize
+  types.ts
 ```
 
-## Usage
+## Security notes
 
-1. Open Settings and add an API provider
-2. Select the provider from the dropdown
-3. Start chatting
-
-### Recommended providers for privacy
-
-- **Kimi K3** (Moonshot AI): Top Chinese model, Chinese jurisdiction
-- **DeepSeek**: Chinese jurisdiction, very cheap
-- **OpenRouter**: Can use either, one account
-
-### Strict Mode (Grounding)
-
-When enabled (default), the app:
-- Adds a system prompt telling the model to cite sources and not hallucinate
-- Enables web_search and web_fetch tools
-- Model can search the web and read pages to verify facts
-
-Disable strict mode for casual chat without tool overhead.
-
-### Context Management
-
-- Click messages in the sidebar to jump to them
-- Select multiple messages with checkboxes
-- "Summarize Selected" replaces selected messages with a summary
-- "Summarize All" summarizes the entire conversation
-- Edit summaries before applying
-- Toggle "Keep originals when summarizing" in settings
-
-### Wipe
-
-The "Wipe All" button securely deletes all data by:
-1. Overwriting files with random data
-2. Deleting the files
-
-## Security Notes
-
-- All data encrypted at rest using OS keychain (macOS Keychain, Windows Credential Manager)
-- Fallback encryption with AES-256-GCM if keychain unavailable
-- No data sent anywhere except your chosen API provider
-- No telemetry, no analytics, no network calls except API requests and tool searches
-- Web searches go through DuckDuckGo HTML (no tracking)
-
-## Tool Architecture
-
-Tools run in the main process (Node.js), not the renderer. This means:
-- Full network access for searches
-- No CORS issues
-- Results passed back through IPC
-
-The model decides when to call tools based on the system prompt guidance.
+- API keys and conversations are encrypted at rest via `safeStorage`.
+- No telemetry. No analytics.
+- Tools run in the main process; the renderer never has direct network access to arbitrary hosts beyond model endpoints.
+- The wipe button overwrites files with random bytes before unlinking. This is best-effort on SSDs.

@@ -27,7 +27,13 @@ function createWindow() {
     trafficLightPosition: { x: 16, y: 16 },
   });
 
-  mainWindow.loadFile('src/index.html');
+  const devUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devUrl) {
+    mainWindow.loadURL(devUrl);
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+  }
 }
 
 // Encryption helpers using electron's safeStorage (OS keychain)
