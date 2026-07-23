@@ -279,6 +279,41 @@ ipcMain.handle('tool:web-fetch', async (event, url) => {
   return await webFetch(url);
 });
 
+// Spawn subagent: renderer hands us a fully-baked request. We do the network
+// call in Node (out of the browser process) and hand back plain text. The
+// subagent has NO tools of its own by design (no recursion, no infinite loops,
+// no runaway cost).
+ipcMain.handle('tool:spawn-subagent', async (event, req) => {
+  try {
+    const { url, headers, body, format } = req || {};
+    if (!url || !body) return 'Subagent error: missing url or body';
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(headers || {}) },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      return `Subagent error: ${res.status} ${res.statusText}\n${text.slice(0, 500)}`;
+    }
+
+    let data;
+    try { data = JSON.parse(text); } catch { return text; }
+
+    if (format === 'anthropic') {
+      const t = data.content?.find((c) => c.type === 'text');
+      return t?.text || '';
+    }
+    if (format === 'ollama') {
+      return data.message?.content || '';
+    }
+    return data.choices?.[0]?.message?.content || '';
+  } catch (e) {
+    return `Subagent error: ${e.message}`;
+  }
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {

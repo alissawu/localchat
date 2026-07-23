@@ -105,6 +105,25 @@ export const openaiTools = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'spawn_subagent',
+      description:
+        'Spawn a focused subagent to handle a specific task in isolation. Use for research, analysis, drafting, or anything that benefits from a dedicated pass without your full chat history. The subagent sees ONLY the prompt you give it and has no tools of its own — put everything it needs in the prompt.',
+      parameters: {
+        type: 'object',
+        properties: {
+          prompt: {
+            type: 'string',
+            description:
+              'Detailed self-contained prompt for the subagent, including all context and instructions.',
+          },
+        },
+        required: ['prompt'],
+      },
+    },
+  },
 ] as const;
 
 export const anthropicTools = [
@@ -126,6 +145,22 @@ export const anthropicTools = [
       type: 'object',
       properties: { url: { type: 'string', description: 'The URL to fetch' } },
       required: ['url'],
+    },
+  },
+  {
+    name: 'spawn_subagent',
+    description:
+      'Spawn a focused subagent to handle a specific task in isolation. Use for research, analysis, drafting, or anything that benefits from a dedicated pass without your full chat history. The subagent sees ONLY the prompt you give it and has no tools of its own — put everything it needs in the prompt.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        prompt: {
+          type: 'string',
+          description:
+            'Detailed self-contained prompt for the subagent, including all context and instructions.',
+        },
+      },
+      required: ['prompt'],
     },
   },
 ] as const;

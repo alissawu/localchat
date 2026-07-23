@@ -13,4 +13,5 @@ contextBridge.exposeInMainWorld('api', {
   // Tools
   webSearch: (query) => ipcRenderer.invoke('tool:web-search', query),
   webFetch: (url) => ipcRenderer.invoke('tool:web-fetch', url),
+  spawnSubagent: (req) => ipcRenderer.invoke('tool:spawn-subagent', req),
 });

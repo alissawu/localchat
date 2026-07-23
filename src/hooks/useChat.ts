@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Message, Settings, Provider } from '../types';
 import { estimateTokens, streamChat } from '../lib/stream';
+import { runSubagent } from '../lib/subagent';
 
 interface UseChatArgs {
   messagesRef: React.MutableRefObject<Message[]>;
@@ -11,12 +12,18 @@ interface UseChatArgs {
 let idSeq = Date.now();
 const nextId = () => ++idSeq;
 
-async function runTool(name: string, args: Record<string, unknown>): Promise<string> {
+async function runTool(
+  name: string,
+  args: Record<string, unknown>,
+  provider: Provider,
+): Promise<string> {
   try {
     if (name === 'web_search')
       return await window.api.webSearch(String(args.query || ''));
     if (name === 'web_fetch')
       return await window.api.webFetch(String(args.url || ''));
+    if (name === 'spawn_subagent')
+      return await runSubagent(provider, String(args.prompt || ''));
     return `Unknown tool: ${name}`;
   } catch (e) {
     return `Tool error: ${(e as Error).message}`;
@@ -131,9 +138,13 @@ export function useChat({ messagesRef, setMessages, settingsRef }: UseChatArgs) 
         createdAt: Date.now(),
       };
       appendMessage(callMsg);
-      setToolStatus(`${call.name} → ${JSON.stringify(call.arguments).slice(0, 80)}`);
+      setToolStatus(
+        call.name === 'spawn_subagent'
+          ? `researching · ${String(call.arguments.prompt || '').slice(0, 70)}`
+          : `${call.name} → ${JSON.stringify(call.arguments).slice(0, 80)}`,
+      );
 
-      const result = await runTool(call.name, call.arguments);
+      const result = await runTool(call.name, call.arguments, provider);
       setToolStatus(null);
 
       const resultMsg: Message = {

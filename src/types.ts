@@ -74,6 +74,12 @@ declare global {
       saveSettings: (settings: Settings) => Promise<boolean>;
       webSearch: (query: string) => Promise<string>;
       webFetch: (url: string) => Promise<string>;
+      spawnSubagent: (req: {
+        url: string;
+        headers: Record<string, string>;
+        body: Record<string, unknown>;
+        format: 'openai' | 'anthropic' | 'ollama';
+      }) => Promise<string>;
     };
   }
 }
