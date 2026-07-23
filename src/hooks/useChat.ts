@@ -63,6 +63,18 @@ export function useChat({ messagesRef, setMessages, settingsRef }: UseChatArgs) 
     if (!provider) throw new Error('No provider selected');
     const s = settingsRef.current;
 
+    // Load base prompt fresh each turn (from SYSTEMPROMPT.md)
+    const basePrompt = await window.api.loadBasePrompt();
+    // Combine: base prompt + settings prompt (if strict mode)
+    let systemPrompt: string | null = null;
+    if (basePrompt && s.strictMode && s.systemPrompt) {
+      systemPrompt = `${basePrompt}\n\n${s.systemPrompt}`;
+    } else if (basePrompt) {
+      systemPrompt = basePrompt;
+    } else if (s.strictMode && s.systemPrompt) {
+      systemPrompt = s.systemPrompt;
+    }
+
     // Placeholder assistant message we'll stream into.
     const streamMsg: Message = {
       id: nextId(),
@@ -86,7 +98,7 @@ export function useChat({ messagesRef, setMessages, settingsRef }: UseChatArgs) 
       {
         provider,
         messages: messagesRef.current.filter((m) => m.id !== streamMsg.id),
-        systemPrompt: s.strictMode ? s.systemPrompt : null,
+        systemPrompt,
         toolsEnabled: s.strictMode,
         reasoningEffort: s.reasoningEffort,
         signal: ac.signal,

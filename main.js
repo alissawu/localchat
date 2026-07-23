@@ -270,6 +270,20 @@ ipcMain.handle('settings:save', async (event, settings) => {
   }
 });
 
+// Load SYSTEMPROMPT.md if it exists (read fresh each call)
+ipcMain.handle('prompt:load-base', async () => {
+  try {
+    const promptPath = path.join(__dirname, 'SYSTEMPROMPT.md');
+    if (fs.existsSync(promptPath)) {
+      return fs.readFileSync(promptPath, 'utf8').trim();
+    }
+    return null;
+  } catch (e) {
+    console.error('Failed to load SYSTEMPROMPT.md:', e);
+    return null;
+  }
+});
+
 // Tool handlers
 ipcMain.handle('tool:web-search', async (event, query) => {
   return await webSearch(query);

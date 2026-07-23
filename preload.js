@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('api', {
   loadSettings: () => ipcRenderer.invoke('settings:load'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
 
+  // Base system prompt (from SYSTEMPROMPT.md)
+  loadBasePrompt: () => ipcRenderer.invoke('prompt:load-base'),
+
   // Tools
   webSearch: (query) => ipcRenderer.invoke('tool:web-search', query),
   webFetch: (url) => ipcRenderer.invoke('tool:web-fetch', url),

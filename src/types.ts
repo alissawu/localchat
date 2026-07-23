@@ -72,6 +72,7 @@ declare global {
       wipeAll: () => Promise<boolean>;
       loadSettings: () => Promise<Partial<Settings> | null>;
       saveSettings: (settings: Settings) => Promise<boolean>;
+      loadBasePrompt: () => Promise<string | null>;
       webSearch: (query: string) => Promise<string>;
       webFetch: (url: string) => Promise<string>;
       spawnSubagent: (req: {
